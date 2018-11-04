@@ -18,6 +18,7 @@
 #include "definitions.h"
 
 #define CHARLIST SWITCH_UNICODE(CharList, void)
+#define SCRIPTLIST SWITCH_UNICODE(ScriptList, void)
 /* The FPTR macro serves only as a placeholder to allow easy generation of the
    code in dispatch_autogen.h. */
 #define FPTR
@@ -51,7 +52,7 @@ typedef struct {
 	FPTR void (*writeWhitespaceDelimiterDT)(InputFile *file);
 
 	/** Add all characters to the specified list or bitmap.
-		@param chars The string with characters to add to the list or bitmap.
+		@param script The string with characters to add to the list or bitmap.
 		@param list The list to add to.
 		@param bitmap. The bitmap to add to.
 
@@ -60,10 +61,19 @@ typedef struct {
 	*/
 	FPTR void (*addCharactersDT)(const char *chars, size_t length, CHARLIST *list, char bitmap[BITMASK_SIZE]);
 
+	/** Add all scripts to the specified list or the void.
+		@param chars The script to add to the list or bitmap.
+
+		If in UTF-8 mode, the script will be added to the list. Otherwise to
+		the bitmap.
+	*/
+	FPTR void (*addScriptsDT)(char *script, SCRIPTLIST *list, char bitmap[BITMASK_SIZE]);
+
 	/** Check for overlap in whitespace and delimiter sets. */
 	FPTR void (*checkOverlapDT)(void);
 
 	FPTR void (*setPunctuationDT)(void);
+	FPTR void (*setLetterDT)(void);
 	FPTR void (*initOptionsDT)(void);
 	FPTR void (*postProcessOptionsDT)(void);
 } DispatchTable;

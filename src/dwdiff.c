@@ -75,7 +75,8 @@ bool isWhitespaceSC(void) {
 }
 
 bool isDelimiterSC(void) {
-	return TEST_BIT(option.delimiters, charData.singleChar);
+	return TEST_BIT(option.delimiters, charData.singleChar) ||
+		TEST_BIT(option.letters, charData.singleChar);
 }
 
 void writeTokenCharSC(InputFile *file) {
@@ -127,6 +128,7 @@ bool isWhitespaceUTF8(void) {
 bool isDelimiterUTF8(void) {
 	return bsearch(&charData.UTF8Char.converted, option.delimiterList.data, option.delimiterList.used,
 		sizeof(UTF16Buffer), (int (*)(const void *, const void *)) compareUTF16Buffer) != NULL ||
+		(option.letterMask && isUTF16Letter(&charData.UTF8Char.converted)) ||
 		(option.punctuationMask && isUTF16Punct(&charData.UTF8Char.converted));
 }
 

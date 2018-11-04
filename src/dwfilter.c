@@ -50,6 +50,8 @@ static PARSE_FUNCTION(parseCmdLine)
 	OPTIONS
 		OPTION('d', "delimiters", REQUIRED_ARG)
 		END_OPTION
+		OPTION('D', "letters", NO_ARG)
+		END_OPTION
 		OPTION('P', "punctuation", NO_ARG)
 		END_OPTION
 		OPTION('W', "white-space", REQUIRED_ARG)

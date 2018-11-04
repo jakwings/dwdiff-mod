@@ -259,6 +259,36 @@ void addCharactersSC(const char *chars, size_t length, CHARLIST *list, char bitm
 	}
 }
 
+void addScriptsSC(char *script, SCRIPTLIST *list, char bitmap[BITMASK_SIZE]) {
+	if (strCaseCmp(script, "list") == 0) {
+		fputs(_("Short Name      Long Name\n"), stdout);
+		fputs("--              --\n", stdout);
+		fputs("C               ASCII\n", stdout);
+		fputs("POSIX           ASCII\n", stdout);
+		exit(EXIT_SUCCESS);
+	}
+
+	const char *seps = ",";
+	char *last;
+	int i;
+	for (script = strtok_r(script, seps, &last); script; script = strtok_r(NULL, seps, &last)) {
+		parseEscapes(script, "script");
+		if (strCaseCmp(script, "all") == 0) {
+			continue;
+		} else if (strCaseCmp(script, "none") == 0) {
+			memset(bitmap, 0, BITMASK_SIZE);
+			continue;
+		} else if (strCaseCmp(script, "C") == 0 || strCaseCmp(script, "POSIX") == 0 || strCaseCmp(script, "ASCII") == 0) {
+			for (i = 0; i <= UCHAR_MAX; i++) {
+				if (isalpha(i))
+					SET_BIT(bitmap, i)
+			}
+		} else {
+			fprintf(stderr, "WARNING: script \"%s\" was not recognized\n", script);
+		}
+	}
+}
+
 /** Check for overlap in whitespace and delimiter sets. */
 void checkOverlapSC(void) {
 	int i;
@@ -268,6 +298,9 @@ void checkOverlapSC(void) {
 
 	for (i = 0; i <= UCHAR_MAX; i++) {
 		if (!TEST_BIT(option.delimiters, i))
+			continue;
+
+		if (!TEST_BIT(option.letters, i))
 			continue;
 
 		if (TEST_BIT(option.whitespace, i))
@@ -283,6 +316,8 @@ void setPunctuationSC(void) {
 		SET_BIT(option.delimiters, i);
 	}
 }
+
+void setLetterSC(void) {}
 
 void initOptionsSC(void) {}
 
@@ -344,6 +379,81 @@ void addCharactersUTF8(const char *chars, size_t length, CHARLIST *list, char bi
 	free(charStream);
 }
 
+typedef VECTOR(UScriptCode, CodeList);
+
+/** Add all scripts to the specified list.
+	@param script The script to add to the list or bitmap.
+	@param list The list to add to.
+	@param bitmap. The bitmap to add to (unused).
+*/
+void addScriptsUTF8(char *script, SCRIPTLIST *list, char bitmap[BITMASK_SIZE]) {
+	/* Suppress unused parameter warning in semi-portable way. */
+	(void) bitmap;
+
+	if (strCaseCmp(script, "list") == 0) {
+		fputs(_("Short Name      Long Name\n"), stdout);
+		fputs("--              --\n", stdout);
+		fputs("C               ASCII\n", stdout);
+		fputs("POSIX           ASCII\n", stdout);
+		for (UScriptCode k = 0; k < u_getIntPropertyMaxValue(UCHAR_SCRIPT); k++) {
+			printf("%-15s %s\n", uscript_getShortName(k), uscript_getName(k));
+		}
+		exit(EXIT_SUCCESS);
+	}
+
+	CodeList codes;
+	int32_t length;
+	UErrorCode err;
+	VECTOR_INIT_ALLOCATED(codes);
+
+	const char *seps = ",";
+	char *last;
+	for (script = strtok_r(script, seps, &last); script; script = strtok_r(NULL, seps, &last)) {
+		parseEscapes(script, "script");
+
+		if (strCaseCmp(script, "all") == 0) {
+			option.allScript = true;
+			continue;
+		}
+		if (strCaseCmp(script, "none") == 0) {
+			option.allScript = false;
+			option.asciiScript = false;
+			continue;
+		}
+
+		err = !U_BUFFER_OVERFLOW_ERROR;
+		length = uscript_getCode(script, codes.data, codes.allocated, &err);
+		while (err == U_BUFFER_OVERFLOW_ERROR) {
+			err = !U_BUFFER_OVERFLOW_ERROR;
+			VECTOR_ALLOCATE(codes, length);
+			length = uscript_getCode(script, codes.data, codes.allocated, &err);
+		}
+		codes.used = length > 0 ? length : 0;
+
+		if (codes.used > 0) {
+			if (strCaseCmp(script, "C") == 0 || strCaseCmp(script, "POSIX") == 0 || strCaseCmp(script, "ASCII") == 0) {
+				option.asciiScript = true;
+			}
+
+			int32_t i;
+			for (i = 0; i < codes.used; i++) {
+				size_t j;
+				/* Check for duplicates */
+				for (j = 0; j < list->used; j++) {
+					if (codes.data[i] == list->data[j])
+						break;
+				}
+				if (j != list->used)
+					continue;
+				VECTOR_APPEND(*list, codes.data[i]);
+			}
+		} else {
+			fprintf(stderr, "WARNING: script \"%s\" was not recognized\n", script);
+		}
+	}
+	VECTOR_FREE(codes);
+}
+
 /** Check for overlap in whitespace and delimiter sets. */
 void checkOverlapUTF8(void) {
 	size_t i, j;
@@ -363,12 +473,18 @@ void checkOverlapUTF8(void) {
 			fatal(_("Whitespace and delimiter sets overlap\n"));
 	}
 
-	if (option.punctuationMask == 0)
-		return;
+	if (option.punctuationMask) {
+		for (i = 0; i < option.whitespaceList.used; i++) {
+			if (isUTF16Punct(&option.whitespaceList.data[i]))
+				fatal(_("Whitespace and delimiter sets overlap\n"));
+		}
+	}
 
-	for (i = 0; i < option.whitespaceList.used; i++) {
-		if (isUTF16Punct(&option.whitespaceList.data[i]))
-			fatal(_("Whitespace and delimiter sets overlap\n"));
+	if (option.letterMask) {
+		for (i = 0; i < option.whitespaceList.used; i++) {
+			if (isUTF16Letter(&option.whitespaceList.data[i]))
+				fatal(_("Whitespace and delimiter sets overlap\n"));
+		}
 	}
 	return;
 }
@@ -377,19 +493,27 @@ void setPunctuationUTF8(void) {
 	option.punctuationMask = U_GC_P_MASK | U_GC_S_MASK;
 }
 
+void setLetterUTF8(void) {
+	option.letterMask = U_GC_L_MASK;
+}
+
 void initOptionsUTF8(void) {
 	VECTOR_INIT_ALLOCATED(option.whitespaceList);
 	VECTOR_INIT_ALLOCATED(option.delimiterList);
+	VECTOR_INIT_ALLOCATED(option.scriptList);
 }
 
 void postProcessOptionsUTF8(void) {
 	static_assert(CRLF_GRAPHEME_CLUSTER_BREAK == 0);
 
-	qsort(option.delimiterList.data, option.delimiterList.used,	sizeof(UTF16Buffer),
+	qsort(option.delimiterList.data, option.delimiterList.used, sizeof(UTF16Buffer),
 		(int (*)(const void *, const void *)) compareUTF16Buffer);
 
 	qsort(option.whitespaceList.data, option.whitespaceList.used, sizeof(UTF16Buffer),
 		(int (*)(const void *, const void *)) compareUTF16Buffer);
+
+	qsort(option.scriptList.data, option.scriptList.used, sizeof(UScriptCode),
+		(int (*)(const void *, const void *)) compareUScriptCode);
 
 	VECTOR_APPEND(charData.UTF8Char.converted, ' ');
 	if (classifyChar() != CAT_WHITESPACE)
@@ -525,6 +649,13 @@ static PARSE_FUNCTION(parseArgs)
 		OPTION('d', "delimiters", REQUIRED_ARG)
 			size_t length = parseEscapes(optArg, "delimiters");
 			addCharacters(optArg, length, SWITCH_UNICODE(&option.delimiterList, NULL), option.delimiters);
+		END_OPTION
+		OPTION('D', "letters", OPTIONAL_ARG)
+			ONLY_UNICODE(option.allScript = option.allScript || (optArg == NULL);)
+			if (optArg != NULL) {
+				addScripts(optArg, SWITCH_UNICODE(&option.scriptList, NULL), option.letters);
+			}
+			setLetter();
 		END_OPTION
 		OPTION('P', "punctuation", NO_ARG)
 			setPunctuation();

@@ -11,8 +11,10 @@
 	writeWhitespaceChar##suffix, \
 	writeWhitespaceDelimiter##suffix, \
 	addCharacters##suffix, \
+	addScripts##suffix, \
 	checkOverlap##suffix, \
 	setPunctuation##suffix, \
+	setLetter##suffix, \
 	initOptions##suffix, \
 	postProcessOptions##suffix \
 };
@@ -25,8 +27,10 @@
 #define writeWhitespaceChar (dispatch->writeWhitespaceCharDT)
 #define writeWhitespaceDelimiter (dispatch->writeWhitespaceDelimiterDT)
 #define addCharacters (dispatch->addCharactersDT)
+#define addScripts (dispatch->addScriptsDT)
 #define checkOverlap (dispatch->checkOverlapDT)
 #define setPunctuation (dispatch->setPunctuationDT)
+#define setLetter (dispatch->setLetterDT)
 #define initOptions (dispatch->initOptionsDT)
 #define postProcessOptions (dispatch->postProcessOptionsDT)
 
@@ -38,8 +42,10 @@ void  writeTokenCharSC(InputFile *file);
 void  writeWhitespaceCharSC(InputFile *file);
 void  writeWhitespaceDelimiterSC(InputFile *file);
 void  addCharactersSC(const char *chars, size_t length, CHARLIST *list, char bitmap[BITMASK_SIZE]);
+void  addScriptsSC(char *script, SCRIPTLIST *list, char bitmap[BITMASK_SIZE]);
 void  checkOverlapSC(void);
 void  setPunctuationSC(void);
+void  setLetterSC(void);
 void  initOptionsSC(void);
 void  postProcessOptionsSC(void);
 bool  getNextCharUTF8(Stream *file);
@@ -49,8 +55,10 @@ void  writeTokenCharUTF8(InputFile *file);
 void  writeWhitespaceCharUTF8(InputFile *file);
 void  writeWhitespaceDelimiterUTF8(InputFile *file);
 void  addCharactersUTF8(const char *chars, size_t length, CHARLIST *list, char bitmap[BITMASK_SIZE]);
+void  addScriptsUTF8(char *script, SCRIPTLIST *list, char bitmap[BITMASK_SIZE]);
 void  checkOverlapUTF8(void);
 void  setPunctuationUTF8(void);
+void  setLetterUTF8(void);
 void  initOptionsUTF8(void);
 void  postProcessOptionsUTF8(void);
 #endif

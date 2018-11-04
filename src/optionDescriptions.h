@@ -21,7 +21,8 @@ N_("-h, --help                             Print this help message\n"),
 N_("-v, --version                          Print version and copyright information\n"),
 
 /* Options changing what is considered (non-)whitespace */
-N_("-d <delim>, --delimiters=<delim>       Specifiy delimiters\n"),
+N_("-d <delim>, --delimiters=<delim>       Specify delimiters\n"),
+N_("-D[<spec>], --letters=[<spec>]         Use letter characters as delimiters\n"),
 N_("-P, --punctuation                      Use punctuation characters as delimiters\n"),
 N_("-W <ws>, --white-space=<ws>            Specify whitespace characters\n"),
 #ifdef DWDIFF_COMPILE

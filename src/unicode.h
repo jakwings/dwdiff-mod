@@ -42,9 +42,11 @@ dos2unix to convert their documents if need be. */
 
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
+#include <unicode/uscript.h>
 
 typedef VECTOR(UChar, UTF16Buffer);
 typedef VECTOR(UTF16Buffer, CharList);
+typedef VECTOR(UScriptCode, ScriptList);
 
 bool getCluster(Stream *stream, UTF16Buffer *buffer);
 bool getBackspaceCluster(Stream *stream, UTF16Buffer *buffer);
@@ -56,7 +58,9 @@ void decomposeChar(CharData *c);
 void casefoldChar(CharData *c);
 
 int compareUTF16Buffer(const UTF16Buffer *a, const UTF16Buffer *b);
+int compareUScriptCode(UScriptCode a, UScriptCode b);
 bool isUTF16Punct(UTF16Buffer *buffer);
 bool isUTF16Whitespace(UTF16Buffer *buffer);
+bool isUTF16Letter(UTF16Buffer *buffer);
 #endif
 #endif

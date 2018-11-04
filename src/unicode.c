@@ -13,6 +13,7 @@
 */
 #ifdef USE_UNICODE
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unicode/unorm.h>
@@ -453,8 +454,18 @@ int compareUTF16Buffer(const UTF16Buffer *a, const UTF16Buffer *b) {
 	return 0;
 }
 
-#define UTF16CharCondition(name, condition) bool isUTF16##name(UTF16Buffer *buffer) { \
-	UChar32 c; size_t i; \
+int compareUScriptCode(UScriptCode a, UScriptCode b)
+{
+	if (a > b)
+		return 1;
+	if (a < b)
+		return -1;
+	return 0;
+}
+
+#define UTF16CharCondition(name, alt, condition) bool isUTF16##name(UTF16Buffer *buffer) { \
+	bool altMode = (alt); \
+	UChar32 c; size_t i, j; \
 	for (i = 0; i < buffer->used; i++) { \
 \
 		if ((buffer->data[i] & 0xFC00) == 0xD800) { \
@@ -464,15 +475,25 @@ int compareUTF16Buffer(const UTF16Buffer *a, const UTF16Buffer *b) {
 		} else { \
 			c = buffer->data[i]; \
 		} \
-		if (!(condition)) \
+		if (!altMode && !(condition)) \
 			return false; \
+		if ((!isalpha(c) || option.asciiScript) && altMode && (condition)) { \
+			if (option.allScript) \
+				return true; \
+			for (j = 0; j < option.scriptList.used; j++) { \
+				if (uscript_hasScript(c, option.scriptList.data[j])) \
+					return true; \
+			} \
+		} \
 	} \
-	return true; \
+	return !altMode; \
 } \
 
 /** Check if a @a UTF16Buffer contains a punctuation character. */
-UTF16CharCondition(Punct, U_GET_GC_MASK(c) & option.punctuationMask)
-/** Check if a @a UTF16Buffer contains a punctuation character. */
-UTF16CharCondition(Whitespace, u_isUWhiteSpace(c))
+UTF16CharCondition(Punct, false, U_GET_GC_MASK(c) & option.punctuationMask)
+/** Check if a @a UTF16Buffer contains a whitespace character. */
+UTF16CharCondition(Whitespace, false, u_isUWhiteSpace(c))
+/** Check if a @a UTF16Buffer contains a letter character. */
+UTF16CharCondition(Letter, true, U_GET_GC_MASK(c) & option.letterMask)
 
 #endif

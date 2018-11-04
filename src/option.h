@@ -34,12 +34,17 @@ struct {
 		addColorLen;
 	/* Bitmaps for single byte checking. */
 	char delimiters[BITMASK_SIZE],
+		letters[BITMASK_SIZE],
 		whitespace[BITMASK_SIZE];
 	/* Lists for UTF8 mode. */
 #ifdef USE_UNICODE
 	CharList delimiterList;
 	CharList whitespaceList;
+	ScriptList scriptList;
+	bool allScript;
+	bool asciiScript;
 	uint32_t punctuationMask;
+	uint32_t letterMask;
 	UNormalizationMode decomposition;
 #endif
 	bool whitespaceSet;
