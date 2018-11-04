@@ -35,6 +35,7 @@ struct {
 	/* Bitmaps for single byte checking. */
 	char delimiters[BITMASK_SIZE],
 		letters[BITMASK_SIZE],
+		punctuation[BITMASK_SIZE],
 		whitespace[BITMASK_SIZE];
 	/* Lists for UTF8 mode. */
 #ifdef USE_UNICODE

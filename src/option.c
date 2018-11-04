@@ -303,6 +303,9 @@ void checkOverlapSC(void) {
 		if (!TEST_BIT(option.letters, i))
 			continue;
 
+		if (!TEST_BIT(option.punctuation, i))
+			continue;
+
 		if (TEST_BIT(option.whitespace, i))
 			fatal(_("Whitespace and delimiter sets overlap\n"));
 	}
@@ -313,7 +316,7 @@ void setPunctuationSC(void) {
 	for (i = 0; i <= UCHAR_MAX; i++) {
 		if (!ispunct(i))
 			continue;
-		SET_BIT(option.delimiters, i);
+		SET_BIT(option.punctuation, i);
 	}
 }
 
@@ -648,10 +651,15 @@ static PARSE_FUNCTION(parseArgs)
 	OPTIONS
 		OPTION('d', "delimiters", REQUIRED_ARG)
 			size_t length = parseEscapes(optArg, "delimiters");
+			memset(option.delimiters, 0, BITMASK_SIZE);
+			ONLY_UNICODE(option.delimiterList.used = 0;)
 			addCharacters(optArg, length, SWITCH_UNICODE(&option.delimiterList, NULL), option.delimiters);
 		END_OPTION
 		OPTION('D', "letters", OPTIONAL_ARG)
-			ONLY_UNICODE(option.allScript = option.allScript || (optArg == NULL);)
+			memset(option.letters, 0, BITMASK_SIZE);
+			ONLY_UNICODE(option.allScript = optArg == NULL;)
+			ONLY_UNICODE(option.asciiScript = false;)
+			ONLY_UNICODE(option.scriptList.used = 0;)
 			if (optArg != NULL) {
 				addScripts(optArg, SWITCH_UNICODE(&option.scriptList, NULL), option.letters);
 			}
@@ -663,6 +671,8 @@ static PARSE_FUNCTION(parseArgs)
 		OPTION('W', "white-space", REQUIRED_ARG)
 			size_t length = parseEscapes(optArg, "whitespace");
 			option.whitespaceSet = true;
+			memset(option.delimiters, 0, BITMASK_SIZE);
+			ONLY_UNICODE(option.whitespaceList.used = 0;)
 			addCharacters(optArg, length, SWITCH_UNICODE(&option.whitespaceList, NULL), option.whitespace);
 		END_OPTION
 		OPTION('h', "help", NO_ARG)

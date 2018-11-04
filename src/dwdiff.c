@@ -76,7 +76,8 @@ bool isWhitespaceSC(void) {
 
 bool isDelimiterSC(void) {
 	return TEST_BIT(option.delimiters, charData.singleChar) ||
-		TEST_BIT(option.letters, charData.singleChar);
+		TEST_BIT(option.letters, charData.singleChar) ||
+		TEST_BIT(option.punctuation, charData.singleChar);
 }
 
 void writeTokenCharSC(InputFile *file) {
