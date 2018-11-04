@@ -441,14 +441,10 @@ void splitDiffInput(void) {
 				break;
 			case FIRST:
 				if (charData.singleChar == '+') {
-					sputc(newFile->stream, ' ');
 					mode = NEW;
 				} else if (charData.singleChar == '-') {
-					sputc(oldFile->stream, ' ');
 					mode = OLD;
 				} else if (charData.singleChar == ' ') {
-					sputc(oldFile->stream, ' ');
-					sputc(newFile->stream, ' ');
 					mode = COMMON;
 				} else {
 					int savedChar = charData.singleChar;
