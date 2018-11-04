@@ -13,7 +13,7 @@
 
 EXTENSIONS="c verbose_compile gettext"
 
-SWITCHES="+unicode +dwfilter"
+SWITCHES="+unicode -dwfilter"
 OPTIONS="icu-config"
 
 COMPILERULE='$(CC) $(CFLAGS) $(GETTEXTFLAGS) $(ICUFLAGS) -c -o $@ $<'
