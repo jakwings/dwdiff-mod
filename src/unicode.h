@@ -58,7 +58,6 @@ void decomposeChar(CharData *c);
 void casefoldChar(CharData *c);
 
 int compareUTF16Buffer(const UTF16Buffer *a, const UTF16Buffer *b);
-int compareUScriptCode(UScriptCode a, UScriptCode b);
 bool isUTF16Punct(UTF16Buffer *buffer);
 bool isUTF16Whitespace(UTF16Buffer *buffer);
 bool isUTF16Letter(UTF16Buffer *buffer);

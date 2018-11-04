@@ -297,13 +297,8 @@ void checkOverlapSC(void) {
 		return;
 
 	for (i = 0; i <= UCHAR_MAX; i++) {
+		/* option.letters & option.punctuation merged */
 		if (!TEST_BIT(option.delimiters, i))
-			continue;
-
-		if (!TEST_BIT(option.letters, i))
-			continue;
-
-		if (!TEST_BIT(option.punctuation, i))
 			continue;
 
 		if (TEST_BIT(option.whitespace, i))
@@ -325,8 +320,14 @@ void setLetterSC(void) {}
 void initOptionsSC(void) {}
 
 void postProcessOptionsSC(void) {
+	int i;
+
+	for (i = 0; i <= UCHAR_MAX; i++) {
+		if (TEST_BIT(option.letters, i) || TEST_BIT(option.punctuation, i))
+			SET_BIT(option.delimiters, i);
+	}
+
 	if (!option.whitespaceSet) {
-		int i;
 		for (i = 0; i <= UCHAR_MAX; i++) {
 			if (!TEST_BIT(option.delimiters, i) && isspace(i))
 				SET_BIT(option.whitespace, i);
@@ -514,9 +515,6 @@ void postProcessOptionsUTF8(void) {
 
 	qsort(option.whitespaceList.data, option.whitespaceList.used, sizeof(UTF16Buffer),
 		(int (*)(const void *, const void *)) compareUTF16Buffer);
-
-	qsort(option.scriptList.data, option.scriptList.used, sizeof(UScriptCode),
-		(int (*)(const void *, const void *)) compareUScriptCode);
 
 	VECTOR_APPEND(charData.UTF8Char.converted, ' ');
 	if (classifyChar() != CAT_WHITESPACE)

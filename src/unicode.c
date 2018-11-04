@@ -454,15 +454,6 @@ int compareUTF16Buffer(const UTF16Buffer *a, const UTF16Buffer *b) {
 	return 0;
 }
 
-int compareUScriptCode(UScriptCode a, UScriptCode b)
-{
-	if (a > b)
-		return 1;
-	if (a < b)
-		return -1;
-	return 0;
-}
-
 #define UTF16CharCondition(name, alt, condition) bool isUTF16##name(UTF16Buffer *buffer) { \
 	bool altMode = (alt); \
 	UChar32 c; size_t i, j; \
