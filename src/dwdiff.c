@@ -216,6 +216,7 @@ DispatchTable *dispatch = &SCDispatch;
 */
 void handleWhitespaceEnd(InputFile *file) {
 	if (option.paraDelim) {
+		/* FIXME: misplaced spaces */
 		size_t i, firstNewline = 0;
 		bool firstNewlineFound = false;
 
